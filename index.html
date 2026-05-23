@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>🚀 流盲终端 - TFR</title>
+    <link href="https://www.apiumc.com/css/weui.css" rel="stylesheet" type="text/css" />
+    <link href="https://www.apiumc.com/css/base.css" rel="stylesheet" type="text/css" />
+    <link href="https://www.apiumc.com/css/icon.css" rel="stylesheet" type="text/css" />
+    <link href="https://www.apiumc.com/css/umc.ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://www.apiumc.com/css/umc.ui.css" rel="stylesheet" type="text/css" />
+    <link href="https://www.apiumc.com/css/xterm.css" rel="stylesheet" type="text/css" />
+    <link href="https://www.apiumc.com/css/umc.dns.css" rel="stylesheet" type="text/css" />
+    <link href="https://www.apiumc.com/css/umc.css" rel="stylesheet" type="text/css" />
+    <link href="https://www.apiumc.com/css/tfr.css" rel="stylesheet" type="text/css" />
+    <script src="https://www.apiumc.com/js/umc.js"></script>
+    <script src="https://www.apiumc.com/js/umc.database.js"></script>
+    <script src="https://www.apiumc.com/js/umc.grid.js"></script>
+    <script src="https://www.apiumc.com/js/umc.dialog.js"></script>
+    <script src="https://www.apiumc.com/js/umc.ui.js"></script>
+    <script src="https://www.apiumc.com/js/umc.page.js"></script>
+    <script src="https://www.apiumc.com/js/umc.paging.js"></script>
+    <script src="https://www.apiumc.com/js/xterm.js"></script>
+    <script src="https://www.apiumc.com/js/qrcode.min.js"></script>
+    <script src="https://www.apiumc.com/js/cbor.min.js"></script>
+    <script src="/js/tfr.js"></script>
+
+</head>
+
+<body>
+    <!-- 语言切换悬浮按钮 -->
+    <div class="lang-switch-wrapper" onclick="toggleLanguage()">
+        <div class="lang-switch-track">
+            <span class="lang-txt zh">中</span>
+            <span class="lang-txt en">EN</span>
+            <div class="lang-switch-dot"></div>
+        </div>
+    </div>
+    <ul class="option-list" id="optionList"></ul>
+
+    <div class="tfr-container">
+
+        <div class="tfr-card">
+            <div class="ws-status" id="wsStatus">
+                <div>
+                    <div class="status-dot"></div>
+                    📡
+                    <span class="lang-node" id="wsText" data-en="Connection...">连接中...</span>
+                </div>
+                <form class="search-select">
+                    <input name="url" required class="lang-node search-input" autocomplete="off"
+                        data-en="Paste the unattended node URL, and get Web Shell instantly."
+                        placeholder="粘贴无人值守节点网址，即获 Web Shell">
+                </form>
+                <div style="text-align: right;">
+                    <a model="Account" cmd="Self" id="tfr_login" class="lang-node" data-en="Not Signed In 🚫">未登录 🚫</a>
+                </div>
+            </div>
+
+            <!-- 拖拽上传区 -->
+            <div class="drop-zone" id="dropZone">
+                <h3 class="lang-node" data-en="Blind Relay, Zero Trace">流盲终端 · 用完即焚</h3>
+                <p id="mainText" class="lang-node" data-en="Support Drag & Drop / Files / Folders">
+                    支持拖拽 / 选择文件 / 选择目录
+                </p>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary lang-node" id="slt_files" data-en="Select Files">选择文件</button>
+                    <button class="btn btn-outline lang-node" data-en="Select Folder"
+                        onclick="triggerDir()">选择文件夹</button>
+                </div>
+
+                <!-- 隐藏的 input -->
+                <input type="file" id="fileInput" multiple>
+                <input type="file" id="dirInput" webkitdirectory directory>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 选项卡 -->
+    <div class="tab-container">
+        <div class="tab-header">
+            <div class="tab-item active lang-node" data-tab="intro" data-en="Introduction">流盲终端介绍</div>
+            <div class="tab-item lang-node" data-tab="local" data-en="My Transfer List">我的文件清单</div>
+            <div class="tab-item lang-node hide" data-tab="user" data-en="Friends' List">好友文件清单</div>
+            <div class="tab-item lang-node" data-tab="nodes" data-en="My Managed Nodes">我的值守节点</div>
+        </div>
+
+
+        <div class="tab-body">
+            <!-- 无痕转发文件 -->
+            <div class="tab-panel active" id="introPanel">
+                <div class="tfr-intro-container">
+
+                    <!-- 1. 核心定义 -->
+                    <header class="tfr-intro-header">
+                        <h2 class="tfr-title-main ">
+                            <span class="icon">🚀</span> TFR <span class="tfr-title-sub"
+                                data-en="Terminal File Relay">(Terminal File Relay) |
+                                流盲终端</span>
+                        </h2>
+                        <p class="tfr-desc-text lang-node"
+                            data-en='Rust self-developed cross-network high-speed encrypted streaming tool, featuring terminal casting, trace-free file transfer, portless cross-network direct connection; memory transparent transmission, burn-after-use.'>
+                            <span class="tfr-highlight-rust">Rust</span> 自研跨网高速加密流转工具，具备终端投射、无痕文件传输、无端口跨网直连能力；
+                            内存透传，用完即焚。
+
+                        </p>
+                    </header>
+
+
+                    <!-- 2. 注入指令区 -->
+                    <section class="tfr-sec">
+                        <!-- 标题翻译：保持图标，翻译文本 -->
+                        <h4 class="tfr-sec-title-grey lang-node"
+                            data-en="💻 Run the following command on target terminal to enable Instant Transfer:">
+                            💻 在目标终端执行以下指令，开启“瞬传”神技：
+                        </h4>
+
+                        <div class="tfr-terminal">
+                            <!-- 代码块不需要翻译，保持原样，以免破坏指令 -->
+                            <code class="tfr-code-block">
+            <span class="tfr-token-blue">eval</span> "$(<span class="tfr-token-orange">curl</span> -s https://<span data-key="tfr-host">tfr.sh</span>/t/<span data-key="tfr-key"></span>)"
+        </code>
+
+                            <!-- 按钮翻译 -->
+                            <button id="copyTerm" class="tfr-btn-copy lang-node" data-en="Copy">复制</button>
+                            <a id="viewSource" target="_blank" class="tfr-btn-copy lang-node"
+                                data-en="View Source">查看源码</a>
+                        </div>
+
+                        <div class="tfr-share-card">
+                            <!-- 提示文本翻译 -->
+                            <p class="tfr-share-tip lang-node"
+                                data-en='Share your session link directly with friends.They can receive files via the friend file list or collaborate on remote Shell terminal operations.'>
+                                直接将当前 Session 链接发送给好友。好友打开后，即可在‘<strong>好友文件清单</strong>’中查收文件，或协助好友运维终端（远程 Shell）。
+                            </p>
+
+                            <div class="tfr-link-wrapper">
+                                <div class="tfr-url-text">
+                                    <span style="color: #999;">https://</span><span
+                                        data-key="tfr-host">tfr.sh.cn</span>/t/<span class="tfr-url-session"
+                                        data-key="tfr-key"></span>/
+                                </div>
+                                <!-- 按钮翻译：注意只翻译里面的 span -->
+                                <button id="copyFriends" class="tfr-link-btn" title="Click to copy link">
+                                    <span class="lang-node" data-en="Copy">复制</span>
+                                </button>
+                                <button class="tfr-link-btn" style="background: #34c759; color: #fff;"
+                                    title="Send to friends">
+                                    <span class="lang-node" id="handleShare" data-en="Share">分享</span>
+                                </button>
+                            </div>
+
+                            <!-- 底部说明翻译 -->
+                            <p class="tfr-burn-note"> <span class="lang-node"
+                                    data-en="🔒 <strong>Self-destruct</strong>: This session is automatically destroyed immediately after transfer. ">
+                                    🔒 <strong>流盲特性</strong>：Session 传输完成后即销毁，中继端无法解密文件内容（密钥仅在收发双方内存中生成）。
+                                </span>
+                                <a href="https://github.com/apiumc/tfr" target="_blank">
+                                    <!-- GitHub 图标 -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16"
+                                        fill="currentColor">
+                                        <path
+                                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                                    </svg>
+                                    <span class="lang-node" data-en="Open source & auditable">开源可审计</span>
+                                </a>
+                        </div>
+                    </section>
+
+
+                    <!-- 3. 指令速查 -->
+                    <section class="tfr-sec">
+                        <!-- 标题翻译 -->
+                        <h4 class="tfr-sec-title-grey lang-node" data-en="🛠️ CLI Usage Reference:">
+                            🛠️ 指令速查 (CLI Usage)：
+                        </h4>
+
+                        <div class="tfr-usage-box">
+                            <div class="tfr-usage-line">
+                                <strong class="tfr-usage-cmd">tfr</strong>
+                                <span class="tfr-usage-comment lang-node"
+                                    data-en="# No args: Default to fetch selected files from my transfer list">
+                                    # 无参数：默认执行拉取我的文件清单选中的文件
+                                </span>
+                            </div>
+                            <div class="tfr-usage-line">
+                                <strong class="tfr-usage-cmd">tfr -n</strong>
+                                <span class="tfr-usage-comment lang-node"
+                                    data-en="# Check unattended node, install proprietary tools if missing">
+                                    # 查看或安装无人值守节点
+                                </span>
+                            </div>
+                            <div class="tfr-usage-line">
+                                <strong class="tfr-usage-cmd">tfr [file/dir]</strong>
+                                <span class="tfr-usage-comment lang-node"
+                                    data-en="# Execute HTTP PUT upload (Dir auto-compressed) | Small text files support live preview & editing">
+                                    # 执行 HTTP PUT 上传 (目录自动压缩) | 小文本支持在线预览与编辑
+                                </span>
+                            </div>
+
+                            <div class="tfr-usage-line">
+                                <!-- 1. 指令部分：不参与翻译 -->
+                                <strong class="tfr-usage-cmd">tfr [file] -c</strong>
+
+                                <!-- 2. 主功能说明：多语言处理 -->
+                                <span class="tfr-usage-comment lang-node"
+                                    data-en="# Resume download from breakpoint (pair with 'tfr [file] -p' on sender)">
+                                    # 终端续传：从断点恢复下载 (配合发送端 tfr [file] -p)
+                                </span>
+
+                                <!-- 3. 提示语：换行显示并锁定高度 -->
+                                <div class="tfr-usage-tip lang-node"
+                                    data-en="💡 Tip: Browser transfer files support auto-resume, no extra commands needed.">
+                                    💡 提示：浏览器的文件清单支持自动断点续传，无需额外指令。
+                                </div>
+                            </div>
+                            <div class="tfr-usage-line">
+                                <strong class="tfr-usage-cmd">echo "data" | tfr [?filename]</strong>
+                                <span class="tfr-usage-comment lang-node"
+                                    data-en="# Pipe: Stream STDIN (Def: stdin.log)">
+                                    # 管道模式：透传 STDIN 流 (默认存为 stdin.log)
+                                </span>
+                            </div>
+                            <div class="tfr-usage-line">
+                                <strong class="tfr-usage-cmd">tfr -t [?container] [?sh] [?Friend_URL]</strong>
+                                <span class="tfr-usage-comment lang-node"
+                                    data-en="# Terminal Cast: Project container/local shell to Web, supports Friend URL">
+                                    # 终端投射：将容器/本地 Shell 投射到 Web 端，支持好友 URL 远程协作
+                                </span>
+                            </div>
+                            <div class="tfr-usage-line">
+                                <strong class="tfr-usage-cmd">tfr key@tfr-node [cmd ...]</strong>
+                                <span class="tfr-usage-comment lang-node"
+                                    data-en="# Authenticate with access key and remotely execute commands on unattended TFR node">
+                                    # 通过 key 口令鉴权，远程连接 tfr-node 节点，免交互无人值守执行指定 cmd 命令
+                                </span>
+
+                                <!-- 3. 提示语：换行显示并锁定高度 -->
+                                <div class="tfr-usage-tip lang-node"
+                                    data-en="💡 Tip: Browser transfer files support auto-resume, no extra commands needed.">
+                                    💡 提示：若使用的是普通静态密钥（非TOTP动态口令），需先执行 tfr -n key@tfr-node [secret] 为该节点密钥预置绑定 TOTP 密钥种子
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </section>
+                    <h4 class="tfr-sec-title-grey lang-node" data-en="🔗 Unattended Mode（tfr -n）：">
+                        🔗 无人值守模式（tfr -n）：
+                    </h4>
+                    <div class="tfr-unattended-card">
+
+                        <p class="tfr-unattended-desc"
+                            data-en="One-time minimalist background service installation generates a fixed URL with TOTP/WebAuthn authentication. After authentication anywhere, you can directly obtain the Web Shell without manually executing <code>tfr -t</code>.">
+                            一次极简后台服务安装，生成带 TOTP/WebAuthn 认证的固定网址 任何地方通过认证后即可获得 Web Shell，无需手动执行
+                            <code>tfr -t</code>。
+                        </p>
+
+                        <ul class="tfr-unattended-list">
+                            <li
+                                data-en="<strong>Installation & Initialization</strong>: Run <code>tfr -n</code> on the target node to generate a fixed URL. <strong>When visiting this URL for the first time</strong>, the browser prompts to set a TOTP password.">
+                                <strong>安装与初始化</strong>：在目标节点执行 <code>tfr -n</code>
+                                生成固定网址。<strong>首次访问该网址</strong>时，浏览器提示设置 TOTP 密码。
+                            </li>
+                            <li>
+                                <strong data-en="Node URL Path Syntax (Core):">节点 URL 路径语法（核心）</strong>：
+                                <ul class="tfr-unattended-sublist">
+                                    <li>
+                                        <strong data-en="Default (root path)">默认（根路径）</strong> ——
+                                        <code>https://tfr.sh.cn/p/xxxx/</code> → <span data-en="launches">启动</span>
+                                        <code>bash</code>
+                                    </li>
+                                    <li>
+                                        <strong data-en="SSH Remote">SSH 远程</strong> —— <code>/root@IP/[port]</code> →
+                                        <span
+                                            data-en="connects to the specified server via SSH (port optional, default 22);">连接指定服务器（端口可选，默认为22）;</span>
+                                        <span data-en="You may preconfigure SSH login credentials via:">预设其密码:</span>
+                                        <code>tfr -n root@IP [password]</code>
+                                    </li>
+                                    <li>
+                                        <strong data-en="Shell inside container">容器内 Shell</strong> ——
+                                        <code>/container_id@bash</code> 或 <code>/container_id@sh</code> →
+                                        <span data-en="enters bash or sh of the specified container"> 进入指定容器的 bash 或
+                                            sh</span>
+                                    </li>
+                                    <li
+                                        data-en="<strong>Custom command</strong> — any path other than the above formats is executed as a direct command, with arguments separated by <code>/</code> (e.g. <code>/python/--version</code> executes <code>python --version</code>)">
+                                        <strong>自定义指令</strong> —— 可直接作为执行的命令，参数以 <code>/</code> 分隔（例如
+                                        <code>/python/--version</code> 执行
+                                        <code>python --version</code>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li
+                                data-en="<strong>Fine-grained Authentication</strong>: Append <code>/Auth</code> to any of the above paths to set independent authentication for that specific path (e.g., <code>/root@192.168.0.2/Auth</code>).">
+                                <strong>细粒度认证</strong>：在上述任意路径后继续追加 <code>/Auth</code>可为该特定路径设置独立的认证（例如
+                                <code>/root@192.168.0.2/Auth</code>）
+                            </li>
+
+                        </ul>
+                    </div>
+                    <!-- 分享 -->
+
+                    <!-- 4. 核心优势 -->
+                    <div class="tfr-grid-container">
+                        <!-- 卡片 1 -->
+                        <div class="tfr-grid-card" style="border-top-color: #007AFF;">
+                            <div class="tfr-grid-title lang-node" data-en="🛡️ Zero Install">🛡️ 免安装注入</div>
+                            <div class="tfr-grid-desc lang-node"
+                                data-en="No SSH config required, one-line curl for instant deployment.">
+                                无需 SSH 配置，一行 curl 即刻进化，用完即走。
+                            </div>
+                        </div>
+
+                        <!-- 卡片 2 -->
+                        <div class="tfr-grid-card" style="border-top-color: #34c759;">
+                            <div class="tfr-grid-title lang-node" data-en="⚡ Memory Native">⚡ 内存级透传</div>
+                            <div class="tfr-grid-desc lang-node"
+                                data-en="Chunked compression pipeline, zero disk usage, max bandwidth.">
+                                分片压缩流式管道技术，不占磁盘，跑满物理带宽。
+                            </div>
+                        </div>
+
+                        <!-- 卡片 3 -->
+                        <div class="tfr-grid-card" style="border-top-color: #ff9500;">
+                            <div class="tfr-grid-title lang-node" data-en="🥷 Self-Destruct">🥷 传完即焚</div>
+                            <div class="tfr-grid-desc lang-node"
+                                data-en="Server acts as an encrypted pipeline only, zero file persistence, max security.">
+                                服务器仅充当加密管道，文件不落地，极致安全。
+                            </div>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <!-- 主标题 -->
+                        <h2 class="title lang-node" data-en="Pricing & Relay Quota Detailed Guide">
+                            服务资费与中继配额详解
+                        </h2>
+                        <!-- 副标题 -->
+                        <p class="subtitle lang-node"
+                            data-en="TFR (Terminal File Relay) — Flexible, backdoor-free, secure and lightweight auditing console">
+                            TFR (Terminal File Relay) — 弹性单位制的无后门安全轻量级审计控制台
+                        </p>
+
+                        <div class="price-container">
+                            <div class="pricing-grid">
+                                <!-- 左侧卡片：常驻服务订阅 -->
+                                <div class="card">
+                                    <div class="card-title lang-node"
+                                        data-en="Service Subscription &lt;span class=&quot;badge-blue&quot;&gt;¥29 / Node / Month&lt;/span&gt;">
+                                        常驻服务订阅 <span class="badge-blue">￥29 / 节点 / 月</span>
+                                    </div>
+
+                                    <div class="list-item">
+                                        <strong class="lang-node"
+                                            data-en="Service Subscription · Full Feature Unlock">购买服务订阅 · 全功能解锁</strong>
+                                        <span class="sub-text lang-node"
+                                            data-en="The base service required to unlock 24/7 persistent unattended control, multi-container path-level routing, and full behavior log auditing.">
+                                            “服务订阅”是您开启 24/7 持久无人值守控制、多容器路径级路由及全量行为日志审计的核心基础服务。
+                                        </span>
+                                    </div>
+
+                                    <div class="list-item">
+                                        <strong class="lang-node"
+                                            data-en="Dynamic Quota Model · Flexible Allocation">动态额度模型 · 灵活分配</strong>
+                                        <span class="sub-text lang-node"
+                                            data-en="Billing is not hard-bound to specific hardware fingerprints. Accounts with multiple active quotas can freely assign them to different target destinations.">
+                                            计费不与特定设备硬件指纹强绑定。您的账户拥有多个有效订阅额度，即可灵活分配给不同的访问目标。
+                                        </span>
+                                    </div>
+
+                                    <div class="list-item">
+                                        <strong class="lang-node"
+                                            data-en="Unbind & Transfer Anywhere · Elastic Scaling">动态解绑自由转移 ·
+                                            随时弹性扩展</strong>
+                                        <span class="sub-text lang-node"
+                                            data-en="Seamlessly transfer subscription quotas from old nodes (e.g., disposable Docker containers or VPS) to new ones anytime. Elastic DevOps to eliminate waste.">
+                                            支持随时将订阅额度从旧节点（如即将销毁的 Docker 容器或 VPS）无缝转移至新节点。弹性运维，杜绝资源浪费。
+                                        </span>
+                                    </div>
+
+                                    <div class="card-footer">
+                                        <a model="Platform" cmd="Payment" send="__=TFRNode/TFR"
+                                            class="btn-primary-price lang-node" data-en="Subscribe to Node Now">
+                                            立即订阅常驻节点
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- 右侧卡片：中继网络与流量配额 -->
+                                <div class="card">
+                                    <div class="card-title lang-node"
+                                        data-en="Relay Network & Quota &lt;span class=&quot;badge-blue&quot;&gt;HTTP/3 Blind Relay&lt;/span&gt;">
+                                        中继网络与流量配额 <span class="badge-blue">HTTP/3 盲中继</span>
+                                    </div>
+
+                                    <div class="list-item">
+                                        <strong class="lang-node"
+                                            data-en="Subscriber Bonus · 10GB Monthly Traffic Included">拥有订阅 · 即送每月 10GB
+                                            专属流量</strong>
+                                        <span class="sub-text lang-node"
+                                            data-en="As long as your account holds any active subscription (regardless of current node binding status), you will unconditionally receive 10GB high-speed relay traffic every month.">
+                                            只要您的账户下拥有有效的服务订阅（不论该额度当前是否绑定或正在用于哪台机器），每月都会无条件获赠 10GB 高速中继流量包。
+                                        </span>
+                                    </div>
+
+                                    <div class="list-item">
+                                        <strong class="lang-node" data-en="Anonymous / Temporary Help Quota">免登录 /
+                                            手动协助临时配额</strong>
+                                        <span class="sub-text lang-node"
+                                            data-en="Anonymous devices without persistent credentials (via &lt;code&gt;tfr -t&lt;/code&gt;) share a baseline of 500MB relay traffic per unique host IP per month.">
+                                            未持有常驻授信的匿名设备（直接使用 <code>tfr -t</code> 协助），每个独立主机 IP 每月共享 500MB 基础中继流量。
+                                        </span>
+                                    </div>
+
+                                    <div class="list-item">
+                                        <strong class="lang-node"
+                                            data-en="Exhaustion & Top-up Mechanism">流量耗尽与补充机制</strong>
+                                        <span class="sub-text lang-node"
+                                            data-en="Once exhausted, top up with low-cost add-on data packs via the web console. Pay-as-you-go (¥1.5/GB), permanently valid, and never expires at the end of the month.">
+                                            额度耗尽后，可在网页端一键加购低资费“流量叠加包”，按量计费（1.5元/G），永久有效，不随月度销毁。
+                                        </span>
+                                    </div>
+
+                                    <div class="card-footer">
+                                        <a class="btn-secondary lang-node" model="Platform" cmd="Payment"
+                                            send="__=TFR/TFR" data-en="Purchase Data Add-on">
+                                            加购流量叠加包
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- 合规声明 -->
+                    <section class="tfr-sec">
+                        <h4 class="tfr-sec-title-grey lang-node"
+                            data-en="⚖️ Technical Neutrality & Compliance Statement">
+                            ⚖️ 技术中立与合规声明
+                        </h4>
+                        <div class="tfr-legal-box">
+                            <div class="tfr-legal-content">
+                                <p class="tfr-legal-p lang-node"
+                                    data-en="1. <strong>Principle Neutrality</strong>: This system is based on a <strong>patented invention architecture</strong>, using <strong>Rust async memory streaming technology</strong>. The server acts only as a transient physical pipe (Blind Relay) and lacks the technical capability to parse, reassemble, or recover transmitted data (including filenames, content, and structures).">
+                                    1. <strong>原理中立</strong>：本系统基于<strong>已申请的国家发明专利架构</strong>，核心采用 <strong>Rust
+                                        异步内存流式透传技术</strong>。服务端仅充当瞬时物理管道（Blind
+                                    Relay），不具备对传输数据（包括文件名、文件内容及目录结构）进行解析、重组或恢复的技术能力。
+                                </p>
+                                <p class="tfr-legal-p lang-node"
+                                    data-en="2. <strong>End-to-End Encapsulation</strong>: All data is encapsulated at the frontend (browser/terminal). The server treats payloads as a <strong>complete black box</strong>. We strictly enforce the 'no-landing, no-storage, no-censorship' principle to ensure ultimate privacy and security.">
+                                    2.
+                                    <strong>端到端封装</strong>：所有数据均在前端（浏览器/终端）完成流式封装，服务端对传输载荷表现为<strong>完全黑盒状态</strong>。系统严格执行“不落地、不存储、不审查”原则，确保传输过程的极致隐私与安全。
+                                </p>
+                                <p class="tfr-legal-p lang-node"
+                                    data-en="3. <strong>Compliance Traceability</strong>: As a provider, we fulfill cybersecurity obligations by retaining only essential <strong>transmission metadata</strong> (e.g., Session ID, masked IPs, traffic fingerprints, and timestamps). Logs are kept in accordance with national laws.">
+                                    3.
+                                    <strong>合规溯源</strong>：作为技术服务提供方，本系统依法履行网络安全监管义务，仅在后台留存必要的<strong>传输行为元数据</strong>（如：会话ID、双端脱敏IP、流量指纹及时间戳），日志留存期符合国家相关法律规定。
+                                </p>
+
+                                <p class="tfr-legal-footer lang-node"
+                                    data-en="* Note: Please use this tool within the limits of the law. All transmission actions initiated via this system are the sole legal responsibility of the user.">
+                                    * 提醒：请在法律允许的范围内使用本工具。用户利用本系统发起的所有传输行为，均由用户自行承担相应的法律责任。
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+
+                </div>
+            </div>
+            <!-- 本地文件 -->
+            <div class="tab-panel " id="localPanel">
+                <div class="tfr-empty-state">
+                    <!-- 动态流转图标 (CSS 动画) -->
+                    <div class="flow-icon-circle">
+                        <span style="font-size: 32px;">📂</span>
+                        <!-- 外部旋转流光环 -->
+                        <div class="stream-ring"></div>
+                    </div>
+
+                    <!-- 引导文案翻译 -->
+                    <h3 class="tfr-empty-title lang-node" data-en="No Files Pending">暂无待流传文件</h3>
+                    <p class="tfr-empty-desc lang-node"
+                        data-en="Please <strong>Drag & Drop</strong> files/folders to the area above <br> or click the buttons above to <strong>Select</strong>, starting memory pipeline transfer">
+                        请直接<strong>拖放</strong>文件/目录至此上方区域 <br>
+                        或点击上方按钮<strong>选择</strong>文件，开启内存管道透传
+                    </p>
+
+                    <!-- 专利背书小标翻译 -->
+                    <div class="tfr-patent-badge lang-node"
+                        data-en="🛡️ Supported by National Invention Patent | FLOWTRANS ENGINE">
+                        🛡️ 国家发明专利技术支持 | FLOWTRANS ENGINE
+                    </div>
+                </div>
+                <div class="tfr-main-container">
+                    <!-- 1. 顶部状态与操作栏 -->
+                    <div class="tfr-top-bar">
+                        <div class="tfr-select-group">
+                            <input type="checkbox" id="master-select" for="localTreeView" class="tfr-checkbox">
+                            <!-- 翻译“全选清单” -->
+                            <label for="master-select" class="tfr-checkbox-label lang-node"
+                                data-en="Select All">全选清单</label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <!-- 状态勋章：注意不要包裹 id="count"，只翻译前后的文本 -->
+                            <span class="tfr-status-badge">
+                                <span class="lang-node" data-en="Locked">已锁定</span>
+                                <span id="count">3</span>
+                                <span class="lang-node" data-en="Files 🚀">个文件 🚀</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 树形列表容器 (内容由 JS 动态生成，翻译逻辑需在生成树的脚本中处理) -->
+                    <div class="tfr-tree-container" id="localTreeView"></div>
+
+                    <!-- 底部指引 -->
+                    <div class="tfr-guide-panel">
+                        <div class="tfr-guide-flex">
+                            <span style="font-size: 16px;">💡</span>
+                            <div class="tfr-guide-content">
+                                <!-- 指引文本：保留 <strong> 和 <code> -->
+                                <p class="tfr-guide-text lang-node"
+                                    data-en="<strong>Guide:</strong> Select files above, then run <code class='tfr-inline-code'>tfr</code> in terminal to start streaming download.">
+                                    <strong>操作指引：</strong> 勾选上方文件后，在终端执行
+                                    <code class="tfr-inline-code">tfr</code> 即可开启流式下载。
+                                </p>
+                                <div class="tfr-share-strip">
+                                    <span class="tfr-share-url-text">
+                                        <span class="lang-node" data-en="🔗 Share with friends: ">🔗 共享给好友：</span>
+                                        <strong style="color: #444;">https://<span data-key="tfr-host"></span>/t/<span
+                                                data-key="tfr-key"></span>/</strong>
+                                    </span>
+                                    <!-- 按钮翻译 -->
+                                    <button id="copyFriends" class="tfr-btn-mini lang-node"
+                                        data-en="Copy Link">复制链接</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 用户文件 -->
+            <div class="tab-panel" id="userPanel">
+                <!-- 1. 好友流传清单：空白/等待状态 -->
+                <div class="tfr-friend-empty">
+                    <div class="receive-icon-box">
+                        <span style="font-size: 36px;">🔗</span>
+                        <div class="pulse-wave"></div>
+                    </div>
+
+                    <h3 class="tfr-friend-empty-title lang-node" data-en="Waiting for Friend's Stream...">等待好友流传...
+                    </h3>
+                    <p class="tfr-friend-empty-desc lang-node"
+                        data-en="No files shared in current pipe. <br> You can send the link below to invite friends to <strong>Start Transfer</strong>.">
+                        当前管道内暂无好友分享的文件。 <br>
+                        您可以将下方链接发送给好友，邀请其<strong>开启流传</strong>。
+                    </p>
+
+                    <!-- 快捷分享区 -->
+                    <div class="tfr-share-invite-box">
+                        <code class="tfr-share-url-code">
+                https://<span data-key="tfr-host">tfr.sh</span>/t/<em data-key="tfr-key"></em>/
+            </code>
+                        <button id="copyFriends" class="tfr-btn-copy-blue lang-node" data-en="Copy Link">复制链接</button>
+                    </div>
+
+                    <div class="tfr-waiting-footer">
+                        Waiting for stream • FlowTrans Technology
+                    </div>
+                </div>
+
+                <!-- 2. 列表主容器 -->
+                <div class="tfr-main-container">
+                    <!-- 顶部状态与操作栏 -->
+                    <div class="tfr-top-bar">
+                        <div class="tfr-select-group">
+                            <input type="checkbox" id="master-select-friend" for="userTreeView" class="tfr-checkbox">
+                            <label for="master-select-friend" class="tfr-checkbox-label lang-node"
+                                data-en="Select All">全选清单</label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <span class="tfr-status-badge">
+                                <span class="lang-node" data-en="Selected">已选定</span>
+                                <span id="count">0</span>
+                                <span class="lang-node" data-en="Files 🚀">个文件 🚀</span>
+                            </span>
+                            <button class="btn_friend_down lang-node" data-en="Download">下载</button>
+                        </div>
+                    </div>
+
+                    <!-- 树形容器 -->
+                    <div class="tfr-tree-container" id="userTreeView"></div>
+
+                    <!-- 底部指引 -->
+                    <div class="tfr-guide-panel" id="tfr-guide-panel">
+                        <div class="tfr-guide-flex">
+                            <span style="font-size: 16px;">💡</span>
+                            <div class="tfr-guide-content">
+                                <p class="tfr-guide-text lang-node"
+                                    data-en="<strong>Guide:</strong> Select files above, then click <code class='tfr-inline-code'>Download</code> at top right to start streaming.">
+                                    <strong>操作指引：</strong> 勾选上方文件后，点击右上角 <code class="tfr-inline-code">下载</code>
+                                    即可开启流式下载。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 选项卡 3: My Nodes -->
+            <div id="nodesPanel" class="tab-panel">
+                <div class="empty-placeholder-section">
+                    <div class="icon-circle-wrapper">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="44" stroke="#f0f0f0" stroke-width="3.5" fill="transparent" />
+                            <circle cx="50" cy="50" r="44" stroke="#1890ff" stroke-width="3.5" fill="transparent"
+                                stroke-dasharray="276" stroke-dashoffset="100" stroke-linecap="round" />
+                        </svg>
+                        <span style="font-size: 32px; z-index: 1; transform: translateY(-1px);">🔑</span>
+                    </div>
+                    <h3 class="placeholder-title"><a model="Account" cmd="Self" data-en="Unauthenticated">未登录，请登录</a>
+                    </h3>
+                    <div class="placeholder-footer">
+                        <span>🛡️</span>
+                        <span class="lang-node" data-en="Zero-Trust Ephemeral Channel Architecture">零信任内存管道透传技术支持</span>
+                        <span>|</span>
+                        <span>TFR SECURITY ENGINE</span>
+                    </div>
+                </div>
+                <section class="section">
+
+                    <!-- 配额状态 -->
+                    <div class="alert-bar">
+                        <div>
+                            <h4 class="lang-node" data-en="📦 Managed Node Subscription Quota">📦 值守节点订阅配额管理</h4>
+                            <p>
+                                <span class="lang-node" data-en="Currently Occupied: ">当前已占用：</span>
+                                <strong id="used-count" style="color: #28a745;">3</strong> /
+                                <span id="total-count">5</span>
+                                <span class="lang-node" data-en=" Nodes">个节点配额</span> |
+                                <span class="lang-node" data-en=" Auto-Renewal Billing Period: ">自动续费账期：</span>
+                                <span id="renewal-Period"></span>
+                            </p>
+                        </div>
+                        <div>
+                            <button class="btn-primary lang-node" model="Platform" cmd="Node" send="Add"
+                                data-en="➕ Bind Managed Node">➕ 绑定值守节点</button>
+                            <button model="Platform" cmd="Payment" send="__=TFRNode/TFR" class="btn-success lang-node"
+                                data-en="➕ Purchase More Quota">➕ 购买更多配额</button>
+                        </div>
+                    </div>
+
+                    <!-- 搜索与过滤交互工具栏 -->
+                    <div class="search-filter-container">
+                        <input type="text" id="node-search-input" class="search-input lang-node"
+                            placeholder="输入节点名称或 Web Shell URL 关键字进行实时搜索..."
+                            data-en="Enter node name or Web Shell URL keywords for real-time search...">
+                        <select id="node-status-filter" class="filter-select">
+                            <option value="all" class="lang-node" data-en="All Statuses">所有状态</option>
+                            <option value="online" class="lang-node" data-en="● Online">● 在线</option>
+                            <option value="offline" class="lang-node" data-en="○ Offline">○ 离线</option>
+                        </select>
+                    </div>
+
+                    <!-- 暂无搜索结果提示占位 -->
+                    <div id="no-search-results" class="lang-node"
+                        data-en="🔍 No nodes found matching the filter criteria.">
+                        🔍 没有找到符合筛选条件的节点。</div>
+
+                    <!-- 动态节点卡片容器 -->
+                    <div id="nodes-list-container">
+                    </div>
+
+                    <div id="free-slots-container"></div>
+
+                    <div class="panel-footer">
+                        🔒 <strong class="lang-node" data-en="Security Self-Attestation Notice:">安全自证提示：</strong>
+                        <span class="lang-node"
+                            data-en=" Terminal File Relay nodes do not require public IP addresses. All 1-click commands and Web Shell connections are secured with P-256 elliptic curve asymmetric end-to-end encryption.">
+                            流盲终端节点无需依赖公网IP。所有一键指令及 Web Shell 连接均采用 P-256 椭圆曲线非对称端到端加密防护。</span>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+        <section class="section private-advantage-section">
+            <div class="container">
+                <!-- 1. 主标题与副标题 -->
+                <h2 class="section-title lang-node" data-en="Why Choose TFR On-Premises Deployment?">
+                    为什么选择 TFR 私有化部署？
+                </h2>
+                <p class="section-subtitle lang-node"
+                    data-en="Built for corporate intranets, classified networks, and statutory compliance. Data never leaves your facility, ensuring full control and safety.">
+                    专为企业内网、涉密与等保合规场景打造，数据不出机房，安全可控
+                </p>
+
+                <div class="advantage-grid">
+                    <!-- 卡片 1 -->
+                    <div class="advantage-card">
+                        <div class="icon-box">🔒</div>
+                        <h3 class="lang-node" data-en="100% Data Localization">数据100%本地化</h3>
+                        <p class="lang-node"
+                            data-en="All session traffic and operation logs circulate strictly within your intranet. The platform never relays or stores your business data, completely eliminating leak risks.">
+                            所有会话流量、操作日志全程在客户内网闭环流转，平台不中转、不存储任何业务数据，彻底消除数据泄露风险。
+                        </p>
+                    </div>
+
+                    <!-- 卡片 2 -->
+                    <div class="advantage-card">
+                        <div class="icon-box">📶</div>
+                        <h3 class="lang-node" data-en="Air-Gapped & Offline Ready">免外网依赖，断网可用</h3>
+                        <p class="lang-node"
+                            data-en="No internet required for account login or license verification after deployment. Supports offline license importing, perfectly tailored for physically isolated, classified networks.">
+                            部署后无需账号登录、无需联网校验，支持离线License导入，完全适配物理隔离的涉密内网环境。
+                        </p>
+                    </div>
+
+                    <!-- 卡片 3 -->
+                    <div class="advantage-card">
+                        <div class="icon-box">💰</div>
+                        <h3 class="lang-node" data-zh="无流量焦虑，预算透明" data-en="Unlimited Traffic & Transparent Pricing">
+                            无流量焦虑，预算透明</h3>
+                        <p class="lang-node"
+                            data-en="Completely eliminates bandwidth/traffic metering. Billed on a fixed per-node basis (monthly/annually) with unlimited intranet usage. No hidden overage fees.">
+                            彻底移除流量计费，采用节点授权制按月/按年计费，内网使用无上限，告别超量加价的隐性成本。
+                        </p>
+                    </div>
+
+                    <!-- 卡片 4 -->
+                    <div class="advantage-card">
+                        <div class="icon-box">✅</div>
+                        <h3 class="lang-node" data-en="Compliance & Security Auditing">等保合规审计增值</h3>
+                        <p
+                            data-en="Optional MLPS compliance audit pack binds Identity + Session + Log across the full lifecycle, fulfilling MLPS 2.0 regulatory requirements for operational traceability and non-repudiation.">
+                            可选等保合规审计包，开启身份+会话+日志全链路绑定留痕，满足等保2.0对操作溯源、防抵赖的核查要求。
+                        </p>
+                    </div>
+
+                    <!-- 卡片 5 -->
+                    <div class="advantage-card">
+                        <div class="icon-box">⚙️</div>
+                        <h3 class="lang-node" data-en="Lightweight & Hardware-Free">轻量化部署，无硬件依赖
+                        </h3>
+                        <p class="lang-node"
+                            data-en="No need to purchase expensive bastion host hardware. Supports 1-click deployment on your existing servers with minimal resource footprint, slash maintenance costs.">
+                            无需采购昂贵堡垒机硬件，支持一键部署在客户现有服务器上，低资源占用，运维成本大幅降低。
+                        </p>
+                    </div>
+
+                    <!-- 卡片 6 -->
+                    <div class="advantage-card">
+                        <div class="icon-box">🔌</div>
+                        <h3 class="lang-node" data-zh="开放适配，可深度集成" data-en="Open API & Seamless Integration">
+                            开放适配，可深度集成
+                        </h3>
+                        <p class="lang-node" data-zh="支持与企业现有日志平台、堡垒机系统对接，可定制化适配内网安全策略，无缝融入现有运维流程。"
+                            data-en="Supports docking with your existing log platforms and bastion hosts. Highly customizable to adapt to your internal security policies and blend into your DevOps workflow.">
+                            支持与企业现有日志平台、堡垒机系统对接，可定制化适配内网安全策略，无缝融入现有运维流程。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section private-advantage-section" style="border-top: 1px dashed #ddd;">
+            <div class="container">
+                <!-- 主标题 -->
+                <h2 class="section-title lang-node" data-en="Partnership Benefits for Cloud Providers">与云服务商合作优势
+                </h2>
+
+                <!-- 副标题 -->
+                <p class="section-subtitle lang-node"
+                    data-en="Elevating container DevOps to VM standards · Maximizing hardware savings · Empowering cloud vendors to drive incremental revenue">
+                    让容器媲美虚拟机运维体验 · 极致节省硬件算力 · 助力云厂商增值增收
+                </p>
+
+                <div class="advantage-grid">
+
+                    <!-- 卡片 1 -->
+                    <div class="advantage-card">
+                        <h3 class="lang-node" data-en="VM-Equivalent DevOps Experience for Containers">容器拥有虚拟机同等运维体验
+                        </h3>
+                        <p class="lang-node"
+                            data-en="Deeply encapsulates containers to deliver a remote login, terminal operation, and daily management experience completely identical to traditional virtual machines. Users can seamlessly replace VMs without altering their DevOps habits.">
+                            将容器深度封装，实现和传统虚拟机完全一致的远程登录、终端操作、日常管理习惯，用户无需改变运维方式，无缝平滑替代VM。
+                        </p>
+                    </div>
+
+                    <!-- 卡片 2 -->
+                    <div class="advantage-card">
+                        <h3 class="lang-node" data-en="Reclaiming Redundant VM Resources">彻底夺回虚拟机冗余资源</h3>
+                        <p class="lang-node"
+                            data-en="Traditional VMs suffer from bloated images and locked, exclusive memory/CPU allocations, leaving vast amounts of hardware idling. Transitioning to container nodes completely reclaims computing power and hardware assets wasted by idle VMs.">
+                            传统虚拟机镜像臃肿、内存CPU独占锁定，大量硬件长期空耗浪费；改用容器节点后，可彻底夺回被VM无效占用的算力与硬件资源。
+                        </p>
+                    </div>
+
+                    <!-- 卡片 3 -->
+                    <div class="advantage-card">
+                        <h3 class="lang-node" data-en="Minimal Footprint Compared to VMs">容器资源占用远低于虚拟机</h3>
+                        <p class="lang-node"
+                            data-en="Containers share the underlying OS kernel, eliminating redundant OS overhead. Under identical hardware configurations, the density of deployable containers multiplies compared to traditional VMs, drastically boosting hardware utilization.">
+                            容器共享底层系统内核，无冗余独立系统开销，同配置硬件下，容器可部署数量是传统虚拟机的数倍，硬件利用率大幅拉升。
+                        </p>
+                    </div>
+
+                    <!-- 卡片 4 -->
+                    <div class="advantage-card">
+                        <h3 class="lang-node" data-en="Slashing Hardware Expansion Capex">大幅降低硬件扩容投入</h3>
+                        <p class="lang-node"
+                            data-en="Leveraging the lightweight architecture of containers, there is no need for massive server procurement. Existing bare-metal infrastructure can host substantially more business nodes, saving cloud vendors immense datacenter, hardware, and maintenance costs.">
+                            依托容器轻量化优势，无需大批量新增服务器，原有物理机即可承载更多业务节点，帮云厂商大幅节省机房、硬件与运维成本。
+                        </p>
+                    </div>
+
+                    <!-- 卡片 5 -->
+                    <div class="advantage-card">
+                        <h3 class="lang-node" data-en="Monetizing Idle Resources for Value-Add">闲置资源重新封装增值售卖</h3>
+                        <p class="lang-node"
+                            data-en="The freed-up computing power reclaimed from VMs can be repackaged into standard operational nodes for leasing and commercialization, creating an entirely new, highly profitable upsell channel without requiring a single dime of extra hardware investment.">
+                            从虚拟机释放夺回的空闲算力，可统一封装为标准运维节点对外经营出租，不增加硬件投入，凭空新增一条盈利增值渠道。
+                        </p>
+                    </div>
+
+                    <!-- 卡片 6 -->
+                    <div class="advantage-card">
+                        <h3 class="lang-node" data-en="Autonomous Auditing Management & Operations">审计功能自主可控自主经营
+                        </h3>
+                        <p class="lang-node"
+                            data-en="Base nodes exclusively offer remote bastion host capabilities, whereas full session auditing (I/O) is kept as an independent add-on. Cloud vendors retain 100% control over feature toggling and premium pricing to maximize their own value-added margins.">
+                            基础节点仅提供远程堡垒运维能力，输入输出全量会话审计为独立增值项，是否开通、定价多少，全部由云厂商自主把控赚取增值利润。
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <div class="tfr-patent-wrap">
+            <h2 class="contact-title" data-en="Core Technology Patent Matrix">核心技术专利矩阵</h2>
+
+            <p class="tfr-patent-desc"
+                data-en="TFR holds 9 national invention patents, all original patents in software and network architecture. The coverage includes portless connection, DNS stealth triggering, cross-network segment P2P transmission, container remote terminal, enterprise intelligent networking and cross-border service access. All technologies are independently developed and protected by national intellectual property rights, forming a solid technical moat and subverting the legacy architecture of traditional SSHD and VPN.">
+                TFR 已布局9项国家发明专利，全部为软件网络架构类原创专利，覆盖无端口连接、DNS隐形触发、跨网段P2P传输、容器远程终端、企业智能组网、跨境业务访问等核心领域。
+                全部技术自主自研，受国家知识产权保护，构建专属技术护城河，颠覆传统 SSHD 与传统 VPN 老旧架构。
+            </p>
+
+            <h3 class="tfr-patent-subtit" data-en="Core Technical Advantages">核心技术优势</h3>
+            <div class="tfr-patent-adv">
+                <div class="tfr-patent-adv-item"
+                    data-en="Portless listening, client-free, no installation and no configuration required">
+                    无端口监听、无客户端、零安装零配置
+                </div>
+                <div class="tfr-patent-adv-item"
+                    data-en="DNS triggered stealth connection, resistant to port scanning and firewall interception">
+                    DNS触发隐形连接，防端口扫描与防火墙拦截
+                </div>
+                <div class="tfr-patent-adv-item"
+                    data-en="Domain-based intranet direct access, eliminating traditional VPN tunnels and virtual network adapters">
+                    域名化内网直连，舍弃VPN隧道与虚拟网卡
+                </div>
+                <div class="tfr-patent-adv-item"
+                    data-en="Signaling callback on-demand relay, resource scheduling on demand with zero idle resource occupation">
+                    信令回调按需中继，资源按需调度闲置零占用
+                </div>
+                <div class="tfr-patent-adv-item"
+                    data-en="Multi-trust domain endogenous network communication, enabling secure isolation and controllable enterprise networking">
+                    多信任域内生互联网通信，企业组网安全隔离可控
+                </div>
+                <div class="tfr-patent-adv-item"
+                    data-en="Lightweight alternative to native SSHD with ultra-low memory footprint in containers">
+                    轻量化替代原生 SSHD，容器极低资源占用
+                </div>
+            </div>
+
+            <h3 class="tfr-patent-subtit" data-en="Published Invention Patents">已公开发明专利</h3>
+            <table class="tfr-patent-table">
+                <thead>
+                    <tr>
+                        <th data-en="Patent Name">专利名称</th>
+                        <th data-en="Status">状态</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <a data-en="Intranet Proxy Communication Method, System and Device Based on QUIC Protocol"
+                                target="_blank"
+                                href="http://epub.cnipa.gov.cn/patent/CN121792614A">一种基于QUIC协议的内网代理通信方法、系统及装置</a>
+                        </td>
+                        <td data-en="Published and publicly available for inquiry">已公开可查</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a data-en="System and Method for Direct Intranet Service Access via Domain Name"
+                                target="_blank"
+                                href="http://epub.cnipa.gov.cn/patent/CN121792488A">一种基于域名化直接访问内网服务系统及方法</a>
+
+                        </td>
+                        <td data-en="Published and publicly available for inquiry">已公开可查</td>
+                    </tr>
+                    <tr>
+                        <td>
+
+                            <a data-en="On-demand Relay Communication System and Method Based on Signaling Callback"
+                                target="_blank"
+                                href="http://epub.cnipa.gov.cn/patent/CN121792202A">一种基于信令回调的按需中继通信系统及方法</a>
+                        </td>
+                        <td data-en="Published and publicly available for inquiry">已公开可查</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a data-en="Method and System for Eliminating NAT Restrictions by Converting Enterprise Outbound TCP Connections to QUIC Connections"
+                                target="_blank"
+                                href="http://epub.cnipa.gov.cn/patent/CN121792486A">一种通过将企业对外TCP连接改造为QUIC连接以消除NAT限制的方法及系统</a>
+                        </td>
+                        <td data-en="Published and publicly available for inquiry">已公开可查</td>
+                    </tr>
+                    <tr>
+                        <td>
+
+
+                            <a data-en="Cross-border Network Access Control System and Method Based on Service Identification"
+                                target="_blank"
+                                href="http://epub.cnipa.gov.cn/patent/CN121750350A">一种基于业务识别的跨境网络访问控制系统及方法</a>
+                        </td>
+                        <td data-en="Published and publicly available for inquiry">已公开可查</td>
+                    </tr>
+                    <tr>
+                        <td>
+
+                            <a data-en="Multi-Trust Domain Parallel Access System and Method for Endogenous Internet"
+                                target="_blank"
+                                href="http://epub.cnipa.gov.cn/patent/CN121750351A">一种面向内生互联网的多信任域并行访问系统及方法</a>
+                        </td>
+                        <td data-en="Published and publicly available for inquiry">已公开可查</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a data-en="Remote Connection Establishment Method and System Triggered by DNS Query"
+                                target="_blank"
+                                href="http://epub.cnipa.gov.cn/patent/CN121418393A">一种基于DNS查询触发的远程连接建立方法与系统</a>
+                        </td>
+                        <td data-en="Published and publicly available for inquiry">已公开可查</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="tfr-patent-subtit" data-en="Patents Under Substantive Examination · Pending Publication">
+                实质审查中 ·
+                待公开核心专利</h3>
+            <div class="tfr-patent-listbox">
+                <div class="tfr-patent-listitem">
+                    <strong
+                        data-en="Portless Listening Cross-Segment P2P File Transmission and Browser Remote Management Method">一种无端口监听的跨网段点对点文件传输及浏览器远程管理方法</strong><br>
+                    <span
+                        data-en="It adapts to TFR container terminal, P2P large file transmission and browser remote operation architecture, currently under substantive examination. Official verification links will be updated after official publication.">适配TFR容器终端、P2P大文件传输、浏览器远程运维底层架构，已进入实质审查，公开后同步更新官方核验链接。</span>
+                </div>
+                <div class="tfr-patent-listitem">
+                    <strong
+                        data-en="Triggered Transparent Proxy Monitoring System and Method Based on DNS Policy Hijacking for IPv4/IPv6 Hybrid Networks">一种面向IPv4/IPv6混合网络、基于DNS策略劫持的触发式透明代理监控系统及方法</strong><br>
+                    <span
+                        data-en="Applicable to IPv4/IPv6 hybrid networks, it abandons costly privacy-intrusive full-network active detection and deep packet inspection in IPv6 scenarios. The patent is currently under substantive examination, and relevant information will be displayed after official publication.">适配IPv4/IPv6
+                        混合网络,摒弃了 IPv6 环境下成本高昂、侵犯隐私的全网主动探测或深度包检测模式，已进入实质审查，公开后同步更新官方核验链接。</span>
+                </div>
+            </div>
+
+            <h3 class="tfr-patent-subtit" data-en="Industry Value & Positioning">行业价值定位</h3>
+            <div class="tfr-patent-value"
+                data-en="Traditional VPN relies on clients, virtual network adapters, fixed ports and global tunnels with rigid architecture. Traditional SSHD suffers from large port exposure, redundant container resources, high attack risks and complex deployment. Backed by 9 software invention patents, TFR adopts a brand-new paradigm: portless, client-free, tunnel-less, domain direct access and DNS stealth triggering. It can replace traditional SSHD for system-level remote maintenance on one hand, and reconstruct traditional VPN for enterprise networking and cross-network access on the other, serving as a next-generation infrastructure solution for intranet interconnection, container operation and cross-border enterprise networking.">
+                传统VPN依赖客户端、虚拟网卡、固定端口、全局隧道，架构固化无法突破；传统SSHD端口暴露面大、容器冗余高、攻击风险高、部署繁琐。<br>
+                TFR依托9项软件发明专利集群，采用无端口、无客户端、无显性隧道、域名直连、DNS隐形触发全新范式，一端替代传统SSHD系统级远程服务，一端重构传统VPN企业组网与跨网访问模式，是下一代内网互联、容器运维、企业跨境组网的基础设施级解决方案。
+            </div>
+            <h3 class="tfr-patent-subtit" data-en="Contact Us">联系我们</h3>
+
+            <div class="contact-row">
+                <div class="contact-item">
+                    <h4 data-en="Business Cooperation">商务合作</h4>
+                    <p data-en="Channel entry & Enterprise authorization">渠道销售、企业授权</p>
+                    <p data-en="Custom development & Ecosystem cooperation">定制开发、生态共建</p>
+                </div>
+                <div class="contact-item">
+                    <h4 data-en="Technical Support">技术支持</h4>
+                    <p data-en="Product consultation & Usage issues">功能咨询、使用问题</p>
+                    <p data-en="Deployment & Operation troubleshooting">私有化部署、故障排查</p>
+                </div>
+                <div class="contact-item">
+                    <h4 data-en="WeChat Consultation">联系方式</h4>
+                    <p>
+                        <span class="wechat-hover-wrap">
+                            <span data-en="WeChat ID:">微信号:</span>TFR_Official
+                            <span class="wechat-qrcode-popup">
+                                <img src="https://www.apiumc.com/css/images/qrcode-3beb0f7b50.png">
+                            </span>
+                        </span>
+
+                    </p>
+                    <p><span data-en="Email:">邮箱:</span> <a href="mailto:apiumc@163.com">apiumc@163.com</a></p>
+                </div>
+            </div>
+
+            <div class="contact-desc"
+                data-en="Working Hours: Monday to Friday 09:00–18:00. Product suggestions, vulnerability feedback and enterprise customization are welcome.">
+                工作时间：周一至周五 09:00–18:00<br>
+                产品建议、漏洞反馈、企业专属定制，欢迎随时沟通
+            </div>
+        </div>
+
+        <footer class="tfr-footer">
+
+
+            <p class="tfr-footer-p lang-node"
+                data-en="Built with ❤️ by <strong class='tfr-footer-strong'>Rust Flow</strong> | Supports theoretical maximum transfer speed">
+                Built with ❤️ by <strong class="tfr-footer-strong">Rust Flow</strong> | 理论最高传输速度支持 | 湖北小雨伞科技有限公司
+                <a href="https://beian.miit.gov.cn/" target="_blank">鄂ICP备2022013972号-6</a>
+            </p>
+        </footer>
+
+
+    </div>
+
+    <input type="file" id="fileInput" multiple />
+    <input type="file" id="dirInput" webkitdirectory directory />
+
+
+    <!-- 消息提示容器 -->
+    <div id="tfr-toast" class="tfr-toast">
+        <span class="toast-icon">💡</span>
+        <!-- 这里的文字由 JS 动态注入 -->
+        <span id="toast-text" class="lang-node"></span>
+    </div>
+    <div class="download_card">
+        <div style="font-size: 40px;">☁️</div>
+
+        <h3 class="lang-node" data-en="Secure Download">加密文件下载</h3>
+        <div class="lang-node" data-en="ECDH Connection Established"
+            style="font-size: 11px; background: #e3f2fd; color: #1976d2; display: inline-block; padding: 2px 8px; border-radius: 10px;">
+            ECDH 安全连接已建立</div>
+
+        <div class="file-box">
+            <span class="filename" style="font-weight: 600; font-size: 14px;">📄 模板.jpg</span>
+            <span class="filesize" style="color: #888; font-size: 12px;">399.58 KB</span>
+        </div>
+
+        <div class="progress-container" id="pContainer">
+            <div id="pBar"></div>
+        </div>
+
+        <div class="btn-group">
+            <button id="dlBtn" class="lang-node" data-en="Download">开始下载</button>
+            <button id="cancelBtn" class="lang-node" data-en="Cancel">取消下载</button>
+        </div>
+
+        <div id="status">
+            <span class="lang-node" data-en="Ready">等待操作...</span>
+        </div>
+
+    </div>
+    <div class="umc-sub-login">
+        <div class="qrcode_view">
+            <div class="close"></div>
+            <div class="loginFunc" style="display:none;">
+                <div class="qrcode"></div>
+                <div class="account"></div>
+            </div>
+            <a class="webauthn lang-node" data-en="Web Credential" model="Account" cmd="WebAuthn" send="Login">
+                Web凭证登录</a>
+            <div class="title lang-node" data-en="Login In">登录</div>
+            <div class="loginQR">
+                <div style="width: 200px; height: 200px; margin: auto; position: relative;">
+                    <div class="context"></div>
+                    <div id="qrcode"></div>
+                </div>
+                <div style="color: #999;font-size: 14px; line-height: 50px;">
+                    <div class="pc">
+                        <span class="lang-node" data-en="Scan with ">请用</span> <a id="tip" class="lang-node"
+                            style="color: #337ab7;" data-en="ITME / WeChat">ITME 、微信</a> <span class="lang-node"
+                            data-en="⧉">扫一扫</span>
+                    </div>
+                    <div class="mob lang-node" data-en="Long press to scan QR code">长按二维码，点击识别</div>
+                </div>
+            </div>
+            <form class="loginForm">
+                <div class="el-form-item user el-input">
+                    <input tabindex="1" type="text" required autocomplete="on" data-en="Username" placeholder="账号"
+                        name="Username" class="el-input__inner lang-node">
+
+                </div>
+                <div class="el-form-item password el-input" tabindex="0">
+
+                    <input tabindex="2" type="password" autocomplete="on" data-en="Password" placeholder="密码"
+                        name="Password" class="el-input__inner lang-node">
+                </div> <button type="submit" class="lang-node el-button el-button--primary el-button--default"
+                    style="width: 100%; margin-bottom: 30px;" data-en="Login In">登录</button>
+
+            </form>
+        </div>
+    </div>
+    <div class="verify-container">
+        <h3 class="title lang-node" data-en="TOTP Verification">动态口令验证</h3>
+        <div class="close"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M4.50047 4.5C4.81289 4.18758 5.31915 4.18758 5.63157 4.5L11.997 10.8655L18.3625 4.5C18.6749 4.18758 19.1811 4.18758 19.4936 4.5C19.806 4.81242 19.806 5.31867 19.4936 5.63109L13.1281 11.9965L19.5005 18.3689C19.8129 18.6813 19.8129 19.1876 19.5005 19.5C19.188 19.8124 18.6818 19.8124 18.3694 19.5L11.997 13.1276L5.63109 19.3775C5.31868 19.6899 4.81242 19.6899 4.5 19.3775C4.18758 19.0651 4.18758 18.5588 4.5 18.2464L10.8659 11.9965L4.50047 5.63109C4.18805 5.31868 4.18805 4.81242 4.50047 4.5Z"
+                    fill="currentColor"></path>
+            </svg></div>
+        <div class="qrcode-box">
+            <div class="qrcode"></div>
+        </div>
+        <div class="guide-box">
+            <div class="guide-title lang-node" data-en="✅ Operation Guide">✅ 操作指引</div>
+            <div class="guide-step lang-node"
+                data-en="1.Open your authenticator app (e.g., Google Authenticator, Microsoft Authenticator, or your phone’s security tool).">
+                1. 打开手机验证器App（推荐：谷歌验证器、微软验证器、手机自带安全工具）；</div>
+            <div class="guide-step lang-node"
+                data-en="2.Tap Add account → Scan QR code, scan the code above. The app will generate a 6-digit one-time password.">
+                2. 点击「添加账户」→ 选择「扫描二维码」，对准上方二维码扫描，App将生成6位动态口令（30秒更新）；</div>
+            <div class="guide-step lang-node" data-en="3.Enter the password in the box below to finish setup.">
+                3. 将生成的动态口令输入下方输入框，完成初始化。</div>
+            <div class="guide-tip lang-node"
+                data-en="⚠️ Note: The password is valid for 30 seconds. Please back up your authenticator data!">
+                ⚠️ 提示：动态口令30秒内有效，需妥善备份验证器信息！</div>
+        </div>
+        <div class="code-input-group">
+            <input type="text" class="code-input" maxlength="1">
+            <input type="text" class="code-input" maxlength="1">
+            <input type="text" class="code-input" maxlength="1">
+            <input type="text" class="code-input" maxlength="1">
+            <input type="text" class="code-input" maxlength="1">
+            <input type="text" class="code-input" maxlength="1">
+        </div>
+        <div class="num-keyboard">
+            <button class="key-btn" data-num="1">1</button>
+            <button class="key-btn" data-num="2">2</button>
+            <button class="key-btn" data-num="3">3</button>
+            <button class="key-btn" data-num="4">4</button>
+            <button class="key-btn" data-num="5">5</button>
+            <button class="key-btn" data-num="6">6</button>
+            <button class="key-btn" data-num="7">7</button>
+            <button class="key-btn" data-num="8">8</button>
+            <button class="key-btn" data-num="9">9</button>
+            <button class="key-btn" data-num="0">0</button>
+            <button class="key-btn delete lang-node" data-en="Delete">删除</button>
+            <button class="key-btn webauthn lang-node" data-en="Cred Verify">设备凭证</button>
+        </div>
+
+    </div>
+    <!-- 在页面中合适位置插入这段代码即可 -->
+    <a href="https://github.com/apiumc/tfr" target="_blank" class="github-corner" aria-label="View source on GitHub">
+        <svg width="80" height="80" viewBox="0 0 250 250"
+            style="fill:#151513; color:#fff; position:fixed; top: 0; border: 0; right: 0;" aria-hidden="true">
+            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+            <path
+                d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+                fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+            <path
+                d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+                fill="currentColor" class="octo-body"></path>
+        </svg>
+    </a>
+
+</body>
+
+</html>
